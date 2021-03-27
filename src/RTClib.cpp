@@ -747,58 +747,58 @@ uint8_t PCF8583::begin() {
 }
 
 DateTime PCF8583::now() {
-    Wire.beginTransmission(address);
-    Wire.write(0xC0); // stop counting, don't mask
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0xC0); // stop counting, don't mask
+    WIRE.endTransmission();
 
-    Wire.beginTransmission(address);
-    Wire.write(0x02);
-    Wire.endTransmission();
-    Wire.requestFrom(address, 5);
+    WIRE.beginTransmission(address);
+    WIRE.write(0x02);
+    WIRE.endTransmission();
+    WIRE.requestFrom(address, 5);
 
-    uint8_t second = bcd2bin(Wire.read());
-    uint8_t minute = bcd2bin(Wire.read());
-    uint8_t hour = bcd2bin(Wire.read());
-    uint8_t incoming = Wire.read(); // year/date counter
+    uint8_t second = bcd2bin(WIRE.read());
+    uint8_t minute = bcd2bin(WIRE.read());
+    uint8_t hour = bcd2bin(WIRE.read());
+    uint8_t incoming = WIRE.read(); // year/date counter
     uint8_t day = bcd2bin(incoming & 0x3f);
     uint8_t year = (int)((incoming >> 6) & 0x03); // it will only hold 4 years...
-    incoming = Wire.read();
+    incoming = WIRE.read();
     uint8_t month = bcd2bin(incoming & 0x1f);
     uint8_t dow = incoming >> 5;
 
     // but that's not all - we need to find out what the base year is
     // so we can add the 2 bits we got above and find the real year
-    Wire.beginTransmission(address);
-    Wire.write(0x10);
-    Wire.endTransmission();
-    Wire.requestFrom(address, 2);
+    WIRE.beginTransmission(address);
+    WIRE.write(0x10);
+    WIRE.endTransmission();
+    WIRE.requestFrom(address, 2);
 
-    uint8_t year_base = Wire.read();
+    uint8_t year_base = WIRE.read();
     year_base <<= 8;
-    year_base |= Wire.read();
+    year_base |= WIRE.read();
     year += year_base;
     return DateTime(year, month, day, hour, minute, second);
 }
 
 void PCF8583::adjust(const DateTime& dt) {
-    Wire.beginTransmission(address);
-    Wire.write(0xC0); // stop counting, don't mask
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0xC0); // stop counting, don't mask
+    WIRE.endTransmission();
 
-    Wire.beginTransmission(address);
-    Wire.write(0x02);
-    Wire.write(bin2bcd(dt.second()));
-    Wire.write(bin2bcd(dt.minute()));
-    Wire.write(bin2bcd(dt.hour()));
-    Wire.write(((uint8_t)(dt.year() - 2000) << 6) | bin2bcd(dt.day()));
-    Wire.write((dt.dayOfWeek() << 5) | (bin2bcd(dt.month()) & 0x1f));
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x02);
+    WIRE.write(bin2bcd(dt.second()));
+    WIRE.write(bin2bcd(dt.minute()));
+    WIRE.write(bin2bcd(dt.hour()));
+    WIRE.write(((uint8_t)(dt.year() - 2000) << 6) | bin2bcd(dt.day()));
+    WIRE.write((dt.dayOfWeek() << 5) | (bin2bcd(dt.month()) & 0x1f));
+    WIRE.endTransmission();
 
-    Wire.beginTransmission(address);
-    Wire.write(0x10);
-    Wire.write(2000 >> 8);
-    Wire.write(2000 & 0x00ff);
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x10);
+    WIRE.write(2000 >> 8);
+    WIRE.write(2000 & 0x00ff);
+    WIRE.endTransmission();
 
     begin(); // reset the control/status register to 0x04
 }
@@ -810,48 +810,48 @@ uint8_t PCF8583::isrunning() {
 
 // Get the alarm at 0x09 adress
 DateTime PCF8583::get_alarm() {
-    Wire.beginTransmission(address);
-    Wire.write(0x0A); // Set the register pointer to (0x0A)
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x0A); // Set the register pointer to (0x0A)
+    WIRE.endTransmission();
 
-    Wire.requestFrom(address, 4); // Read 4 values
+    WIRE.requestFrom(address, 4); // Read 4 values
 
-    uint8_t second = bcd2bin(Wire.read());
-    uint8_t minute = bcd2bin(Wire.read());
-    uint8_t hour = bcd2bin(Wire.read());
+    uint8_t second = bcd2bin(WIRE.read());
+    uint8_t minute = bcd2bin(WIRE.read());
+    uint8_t hour = bcd2bin(WIRE.read());
 
-    Wire.beginTransmission(address);
-    Wire.write(0x0E);
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x0E);
+    WIRE.endTransmission();
 
-    Wire.requestFrom(address, 1); // Read weekday value
+    WIRE.requestFrom(address, 1); // Read weekday value
 
-    uint8_t day = bcd2bin(Wire.read());
+    uint8_t day = bcd2bin(WIRE.read());
     return DateTime(2000, 01, day, hour, minute, second);
 }
 
 // Set a daily alarm
 void PCF8583::set_alarm(const DateTime& dt) {
-    Wire.beginTransmission(address);
-    Wire.write(0x08);
-    Wire.write(0x90); // daily alarm set
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x08);
+    WIRE.write(0x90); // daily alarm set
+    WIRE.endTransmission();
 
-    Wire.beginTransmission(address);
-    Wire.write(0x09); // Set the register pointer to (0x09)
-    Wire.write(0x00); // Set 00 at milisec
-    Wire.write(bin2bcd(dt.second()));
-    Wire.write(bin2bcd(dt.minute()));
-    Wire.write(bin2bcd(dt.hour()));
-    Wire.write(0x00); // Set 00 at day
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x09); // Set the register pointer to (0x09)
+    WIRE.write(0x00); // Set 00 at milisec
+    WIRE.write(bin2bcd(dt.second()));
+    WIRE.write(bin2bcd(dt.minute()));
+    WIRE.write(bin2bcd(dt.hour()));
+    WIRE.write(0x00); // Set 00 at day
+    WIRE.endTransmission();
 }
 
 void PCF8583::off_alarm() {
-    Wire.beginTransmission(address);
-    Wire.write(0x08);
-    Wire.write(0x00); // off alarm set
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x08);
+    WIRE.write(0x00); // off alarm set
+    WIRE.endTransmission();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -867,86 +867,86 @@ PCF8563::PCF8563() {
 
 // initialization
 uint8_t PCF8563::begin() {
-    Wire.begin();
-    Wire.beginTransmission(address);
-    Wire.write(0x00); // Start address
-    Wire.write(0); // Control and status 1
-    Wire.write(0); // Control and status 2
-    return Wire.endTransmission();
+    WIRE.begin();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x00); // Start address
+    WIRE.write(0); // Control and status 1
+    WIRE.write(0); // Control and status 2
+    return WIRE.endTransmission();
 }
 
 DateTime PCF8563::now() {
-    Wire.beginTransmission(address);
-    Wire.write(0x00);
-    Wire.endTransmission();
-    Wire.requestFrom(address, 9);
+    WIRE.beginTransmission(address);
+    WIRE.write(0x00);
+    WIRE.endTransmission();
+    WIRE.requestFrom(address, 9);
 
-    status1 = Wire.read();
-    status2 = Wire.read();
-    uint8_t second = bcd2bin(Wire.read() & 0x7F);
-    uint8_t minute = bcd2bin(Wire.read() & 0x7F);
-    uint8_t hour = bcd2bin(Wire.read() & 0x3F);
-    uint8_t day = bcd2bin(Wire.read() & 0x3F);
-    uint8_t wekday = Wire.read() & 0x07; // year/date counter
-    uint8_t month = Wire.read();
+    status1 = WIRE.read();
+    status2 = WIRE.read();
+    uint8_t second = bcd2bin(WIRE.read() & 0x7F);
+    uint8_t minute = bcd2bin(WIRE.read() & 0x7F);
+    uint8_t hour = bcd2bin(WIRE.read() & 0x3F);
+    uint8_t day = bcd2bin(WIRE.read() & 0x3F);
+    uint8_t weekday = WIRE.read() & 0x07; // year/date counter
+    uint8_t month = WIRE.read();
     uint8_t century = month >> 7;
     month = bcd2bin(month & 0x1F);
-    uint8_t year = bcd2bin(Wire.read()); // it will only hold 4 years...
+    uint8_t year = bcd2bin(WIRE.read()); // it will only hold 4 years...
     return DateTime(year, month, day, hour, minute, second);
 }
 
 void PCF8563::adjust(const DateTime& dt) {
-    Wire.beginTransmission(address);
-    Wire.write(0x02);                       // Start address
-    Wire.write(bin2bcd(dt.second()));       // Second (0-59)
-    Wire.write(bin2bcd(dt.minute()));       // Minute (0-59)
-    Wire.write(bin2bcd(dt.hour()));         // Hour (0-23)
-    Wire.write(bin2bcd(dt.day()));          // Day (1-31)
-    Wire.write(bin2bcd(dt.dayOfWeek())); // Weekday (0-6 = Sunday-Saturday)
-    Wire.write(bin2bcd(dt.month()) | 0x80); // Month (1-12, century bit (bit 7) = 1)
-    Wire.write(bin2bcd(dt.year() % 100));   // Year (00-99)
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x02);                       // Start address
+    WIRE.write(bin2bcd(dt.second()));       // Second (0-59)
+    WIRE.write(bin2bcd(dt.minute()));       // Minute (0-59)
+    WIRE.write(bin2bcd(dt.hour()));         // Hour (0-23)
+    WIRE.write(bin2bcd(dt.day()));          // Day (1-31)
+    WIRE.write(bin2bcd(dt.dayOfWeek())); // Weekday (0-6 = Sunday-Saturday)
+    WIRE.write(bin2bcd(dt.month()) | 0x80); // Month (1-12, century bit (bit 7) = 1)
+    WIRE.write(bin2bcd(dt.year() % 100));   // Year (00-99)
+    WIRE.endTransmission();
 
     begin(); // re set the control/status register to 0x04
 }
 
 uint8_t PCF8563::isrunning() {
-    Wire.beginTransmission(address);
-    Wire.write(0);
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0);
+    WIRE.endTransmission();
 
-    Wire.requestFrom(address, 2);
+    WIRE.requestFrom(address, 2);
 
-    status1 = Wire.read();
-    status2 = Wire.read();
+    status1 = WIRE.read();
+    status2 = WIRE.read();
     return !(bitRead(status1, 5));
 }
 
 uint8_t PCF8563::isvalid() {
-    Wire.beginTransmission(address);
-    Wire.write(0);
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0);
+    WIRE.endTransmission();
 
-    Wire.requestFrom(address, 3);
+    WIRE.requestFrom(address, 3);
 
-    status1 = Wire.read();
-    status2 = Wire.read();
-    uint8_t VL_seconds = Wire.read();
+    status1 = WIRE.read();
+    status2 = WIRE.read();
+    uint8_t VL_seconds = WIRE.read();
     return !(bitRead(VL_seconds, 7));
 }
 
 // Get the alarm at 0x09 adress
 DateTime PCF8563::get_alarm() {
-    Wire.beginTransmission(address);
-    Wire.write(0x09); // Set the register pointer to (0x0A)
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x09); // Set the register pointer to (0x0A)
+    WIRE.endTransmission();
 
-    Wire.requestFrom(address, 4); // Read 4 values
+    WIRE.requestFrom(address, 4); // Read 4 values
 
-    uint8_t minute = bcd2bin(Wire.read());
-    uint8_t hour = bcd2bin(Wire.read());
-    uint8_t day = bcd2bin(Wire.read());
-    uint8_t wday = bcd2bin(Wire.read());
+    uint8_t minute = bcd2bin(WIRE.read());
+    uint8_t hour = bcd2bin(WIRE.read());
+    uint8_t day = bcd2bin(WIRE.read());
+    uint8_t wday = bcd2bin(WIRE.read());
     return DateTime(0, wday, day, hour, minute, 0);
 }
 
@@ -969,22 +969,22 @@ void PCF8563::set_alarm(const DateTime& dt, alarm_flags flags) {
     if (!flags.wday)
         dayOfWeek |= PCF8563_ALARM_REG_OFF;
 
-    Wire.beginTransmission(address);
-    Wire.write(0x09); // Set the register pointer to (0x09)
-    Wire.write(minute);
-    Wire.write(hour);
-    Wire.write(day);
-    Wire.write(dayOfWeek);
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x09); // Set the register pointer to (0x09)
+    WIRE.write(minute);
+    WIRE.write(hour);
+    WIRE.write(day);
+    WIRE.write(dayOfWeek);
+    WIRE.endTransmission();
 }
 
 void PCF8563::off_alarm() {
     // set status2 AF val to zero to reset alarm
     status2 &= ~PCF8563_ALARM_AF;
-    Wire.beginTransmission(address);
-    Wire.write(0x01);
-    Wire.write(status2);
-    Wire.endTransmission();
+    WIRE.beginTransmission(address);
+    WIRE.write(0x01);
+    WIRE.write(status2);
+    WIRE.endTransmission();
 }
 
 void PCF8563::on_alarm() {
@@ -992,10 +992,10 @@ void PCF8563::on_alarm() {
     status2 &= ~PCF8563_ALARM_AF;
     // enable the interrupt
     status2 |= PCF8563_ALARM_AIE;
-    Wire.beginTransmission(address); // Issue I2C start signal
-    Wire.write(0x01);
-    Wire.write(status2);
-    Wire.endTransmission();
+    WIRE.beginTransmission(address); // Issue I2C start signal
+    WIRE.write(0x01);
+    WIRE.write(status2);
+    WIRE.endTransmission();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
